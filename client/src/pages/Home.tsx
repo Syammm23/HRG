@@ -33,34 +33,36 @@ const heroImages = [
 
 const rooms = [
   {
-    name: "Super Deluxe Room",
-    image: `${ASSET}home-rooms1.jpg-510x340.jpg`,
-    copy: "A generous, restful retreat with polished details and a calm garden-facing mood.",
-    features: ["King bed", "Garden view", "Complimentary Wi-Fi"],
-  },
-  {
-    name: "Deluxe A/C Room",
-    image: `${ASSET}home-rooms2.jpg-510x340.jpg`,
-    copy: "Smart comfort for business trips, weekend breaks and easy family stays.",
-    features: ["A/C comfort", "Room service", "Work-friendly"],
-  },
-  {
-    name: "Garden View Stay",
-    image: `${ASSET}home-rooms3.jpg-510x340.jpg`,
-    copy: "Wake up to a little more green, a little more quiet and plenty of breathing room.",
-    features: ["Green outlook", "Daily housekeeping", "Late breakfast"],
-  },
-  {
-    name: "Royal Deluxe Room",
+    name: "AC DELUXE",
     image: `${ASSET}home-rooms4.jpg-510x340.jpg`,
-    copy: "A refined room with extra space, elegant details and a calm garden-facing setting.",
-    features: ["King bed", "Premium interiors", "Garden outlook"],
+    copy: "Smart air-conditioned comfort for business trips, weekend breaks and easy family stays.",
+    features: ["A/C comfort", "Room service", "Work-friendly"],
+    rent: "₹2,600",
+    extra: "₹900",
   },
   {
-    name: "Royal Garden Suite",
+    name: "AC SUPER DELUXE",
+    image: `${ASSET}home-rooms4.jpg-510x340.jpg`,
+    copy: "A spacious air-conditioned retreat with polished details and a calm, restful mood.",
+    features: ["A/C comfort", "King bed", "Complimentary Wi-Fi"],
+    rent: "₹2,900",
+    extra: "₹900",
+  },
+  {
+    name: "ROYAL DELUXE",
     image: `${ASSET}home-rooms-1080x720.jpg`,
-    copy: "Our most spacious stay for celebrations, longer escapes and guests who want a little more room.",
-    features: ["Suite living area", "Premium comfort", "Breakfast included"],
+    copy: "Our refined deluxe stay with extra space, elegant details and a peaceful garden-facing setting.",
+    features: ["Premium interiors", "Garden outlook", "Daily housekeeping"],
+    rent: "₹4,000",
+    extra: "₹1,000",
+  },
+  {
+    name: "ROYAL SUITE",
+    image: `${ASSET}home-rooms3.jpg-510x340.jpg`,
+    copy: "A generous suite-style stay for celebrations, longer escapes and guests who want a little more room.",
+    features: ["Suite comfort", "Premium interiors", "Breakfast included"],
+    rent: "₹5,000",
+    extra: "₹1,000",
   },
 ];
 
@@ -73,8 +75,8 @@ const galleryImages = [
   ["Super Deluxe Room", `${ASSET}home-rooms1.jpg-510x340.jpg`],
   ["Deluxe A/C Room", `${ASSET}home-rooms2.jpg-510x340.jpg`],
   ["Garden View Stay", `${ASSET}home-rooms3.jpg-510x340.jpg`],
-  ["Royal Garden Suite", `${ASSET}home-rooms-1080x720.jpg`],
-  ["Royal Deluxe Room", `${ASSET}home-rooms4.jpg-510x340.jpg`],
+  ["ROYAL DELUXE", `${ASSET}home-rooms-1080x720.jpg`],
+  ["AC DELUXE / AC SUPER DELUXE", `${ASSET}home-rooms4.jpg-510x340.jpg`],
   ["Saffron Veg. Restaurant", `${ASSET}home-saffron.jpg-700x1050.jpg`],
   ["Aqua Lounge", `${ASSET}home-aqua.jpg-700x1050.jpg`],
   ["Garden Restaurant", `${ASSET}home-garden.jpg-700x1050.jpg`],
@@ -221,7 +223,7 @@ export default function Home() {
 
         <section id="story" className="story-section section-pad"><div className="container split-layout"><div className="story-media"><img src={`${ASSET}home-welcome.jpg-1110x740.jpg`} alt="Green garden surrounding Hotel Royal Garden" /></div><div className="story-copy"><SectionHeading eyebrow="A slower kind of stay" title="Room to breathe, right at the edge of the city." copy="Escape the rush without going too far. Hotel Royal Garden brings you clean, fresh air and a warm, easygoing stay in the peaceful green stretches of Dhabhel, Daman." /><p className="body-copy">Just a 5-minute drive from Vapi Railway Station, our 58 thoughtfully designed rooms are made for short breaks, family getaways and peaceful business stays. Come to disconnect from the everyday. Stay for the feeling.</p><button className="text-link" onClick={() => scrollTo("stay")}>Explore the stay <ArrowRight size={17} /></button><div className="story-stats"><div><strong>58</strong><span>Thoughtful rooms</span></div><div><strong>5 min</strong><span>From Vapi station</span></div><div><strong>24/7</strong><span>Warm hospitality</span></div></div></div></div></section>
 
-        <section id="stay" className="stay-section section-pad"><div className="container"><div className="section-row"><SectionHeading eyebrow="Your room, your rhythm" title="Stay a little longer." copy="58 rooms across five categories, with the details that make switching off feel effortless." /><button className="text-link desktop-only" onClick={() => setIsBookingOpen(true)}>View availability <ArrowRight size={17} /></button></div><div className="room-grid">{rooms.map((room, index) => <article className={`room-card ${index === 0 ? "room-card-featured" : ""}`} key={room.name}><div className="room-image-wrap"><img src={room.image} alt={room.name} /><span className="room-index">0{index + 1}</span><button className="card-arrow" aria-label={`Book ${room.name}`} onClick={() => setIsBookingOpen(true)}><ArrowUpRightIcon /></button></div><div className="room-card-content"><span className="card-eyebrow">Hotel Royal Garden · Daman</span><h3>{room.name}</h3><p>{room.copy}</p><div className="feature-list">{room.features.map((feature) => <span key={feature}><Check size={13} /> {feature}</span>)}</div></div></article>)}</div></div></section>
+        <section id="stay" className="stay-section section-pad"><div className="container"><div className="section-row"><SectionHeading eyebrow="Your room, your rhythm" title="Stay a little longer." copy="58 rooms across four tariff categories, with the details that make switching off feel effortless." /><div className="tariff-note">Tariff shown in INR · GST 5% extra · Check-in 12pm · Check-out 11am</div><button className="text-link desktop-only" onClick={() => setIsBookingOpen(true)}>View availability <ArrowRight size={17} /></button></div><div className="room-grid">{rooms.map((room, index) => <article className={`room-card ${index === 0 ? "room-card-featured" : ""}`} key={room.name}><div className="room-image-wrap"><img src={room.image} alt={room.name} /><span className="room-index">0{index + 1}</span><button className="card-arrow" aria-label={`Book ${room.name}`} onClick={() => setIsBookingOpen(true)}><ArrowUpRightIcon /></button></div><div className="room-card-content"><span className="card-eyebrow">Hotel Royal Garden · Daman</span><h3>{room.name}</h3><p>{room.copy}</p><div className="feature-list">{room.features.map((feature) => <span key={feature}><Check size={13} /> {feature}</span>)}</div><div className="room-tariff"><span><small>R. RENT</small><strong>{room.rent}</strong></span><span><small>EX. AD. & CH.</small><strong>{room.extra}</strong></span></div></div></article>)}</div></div></section>
 
         <section id="dining" className="dining-section section-pad"><div className="container"><div className="section-row section-row-light"><SectionHeading light eyebrow="Good food, good company" title="Gather around the table." copy="From a slow afternoon coffee to an evening with a little sparkle, there’s a seat waiting for you." /><div className="filter-tabs" role="tablist">{["All", "Dining", "Lounge"].map((filter) => <button key={filter} role="tab" aria-selected={experienceFilter === filter} className={experienceFilter === filter ? "active" : ""} onClick={() => setExperienceFilter(filter)}>{filter}</button>)}</div></div><div className="experience-grid">{visibleExperiences.map((experience) => { const Icon = experience.icon; return <article className="experience-card" key={experience.title}><div className="experience-image"><img src={experience.image} alt={experience.title} /><span className="experience-icon"><Icon size={19} /></span></div><div className="experience-content"><span className="card-eyebrow">{experience.type} at Royal Garden</span><h3>{experience.title}</h3><p>{experience.text}</p><button className="text-link text-link-light" onClick={() => toast.info(`${experience.title} enquiries`, { description: "Call +91 98240 45633 for today’s menu and timings." })}>Explore the experience <ArrowRight size={16} /></button></div></article> })}</div></div></section>
 
