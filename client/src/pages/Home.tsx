@@ -173,7 +173,7 @@ function BookingWidget({ onReserve }: { onReserve: () => void }) {
 
   return (
     <form className="booking-widget" onSubmit={submit}>
-      <div className="booking-widget-intro"><span>Stay with us</span><strong>Make it a Royal stay.</strong></div>
+      <div className="booking-widget-intro"><span>Stay with us</span><strong>Make it a<br />Royal stay.</strong></div>
       <label><span><CalendarDays size={16} /> Check in</span><input type="date" value={checkIn} min={today} onChange={(event) => setCheckIn(event.target.value)} /></label>
       <label><span><CalendarDays size={16} /> Check out</span><input type="date" value={checkOut} min={checkIn || today} onChange={(event) => setCheckOut(event.target.value)} /></label>
       <label><span><Users size={16} /> Guests</span><select value={guests} onChange={(event) => setGuests(event.target.value)}><option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option><option value="4">4 guests</option><option value="5">5+ guests</option></select></label>
