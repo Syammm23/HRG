@@ -30,6 +30,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build site
         run: pnpm exec vite build
+      - name: Enable static deep links
+        run: cp dist/index.html dist/404.html && mkdir -p dist/gallery && cp dist/index.html dist/gallery/index.html
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
