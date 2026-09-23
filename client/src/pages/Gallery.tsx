@@ -1,4 +1,5 @@
-import { ArrowLeft, ArrowUpRight, Phone } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight, Phone, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const ASSET = `${import.meta.env.BASE_URL}images/`;
 
@@ -18,8 +19,38 @@ const galleryImages = [
   ["Garden Restaurant", `${ASSET}home-garden.jpg-700x1050.jpg`],
 ];
 
+function GalleryLightbox({ selectedIndex, onClose, onChange }: { selectedIndex: number; onClose: () => void; onChange: (index: number) => void }) {
+  const [title, image] = galleryImages[selectedIndex];
+  const previous = () => onChange((selectedIndex - 1 + galleryImages.length) % galleryImages.length);
+  const next = () => onChange((selectedIndex + 1) % galleryImages.length);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "ArrowLeft") previous();
+      if (event.key === "ArrowRight") next();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedIndex, onClose]);
+
+  return (
+    <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <button className="icon-button gallery-lightbox-close" onClick={onClose} aria-label="Close image viewer"><X size={22} /></button>
+      <button className="gallery-lightbox-nav gallery-lightbox-prev" onClick={previous} aria-label="Previous image"><ChevronLeft size={28} /></button>
+      <figure className="gallery-lightbox-content"><img src={image} alt={title} /><figcaption><span>{String(selectedIndex + 1).padStart(2, "0")} / {String(galleryImages.length).padStart(2, "0")}</span>{title}</figcaption></figure>
+      <button className="gallery-lightbox-nav gallery-lightbox-next" onClick={next} aria-label="Next image"><ChevronRight size={28} /></button>
+    </div>
+  );
+}
+
 export default function Gallery() {
   const homeHref = `${import.meta.env.BASE_URL}#top`;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   return (
     <div className="gallery-page">
       <header className="gallery-page-header">
@@ -35,14 +66,15 @@ export default function Gallery() {
         </section>
         <section className="gallery-page-grid" aria-label="Hotel Royal Garden photo gallery">
           {galleryImages.map(([title, image], index) => (
-            <a className={`gallery-page-card gallery-page-card-${(index % 4) + 1}`} href={image} target="_blank" rel="noreferrer" key={image}>
-              <img src={image} alt={title} loading="eager" />
-              <span className="gallery-page-card-info"><small>0{index + 1}</small><strong>{title}</strong><ArrowUpRight size={17} /></span>
-            </a>
+              <button className={`gallery-page-card gallery-page-card-${(index % 4) + 1}`} onClick={() => setSelectedIndex(index)} aria-label={`View ${title}`} key={image}>
+                <img src={image} alt={title} loading="eager" />
+                <span className="gallery-page-card-info"><small>0{index + 1}</small><strong>{title}</strong><ArrowUpRight size={17} /></span>
+              </button>
           ))}
         </section>
       </main>
       <footer className="gallery-page-footer"><span>© {new Date().getFullYear()} Hotel Royal Garden, Daman</span><a href="mailto:rylgarden@yahoo.com">rylgarden@yahoo.com</a><a href="tel:+919824045633">+91 98240 45633</a></footer>
+      {selectedIndex !== null && <GalleryLightbox selectedIndex={selectedIndex} onClose={() => setSelectedIndex(null)} onChange={setSelectedIndex} />}
     </div>
   );
 }

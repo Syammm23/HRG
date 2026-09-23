@@ -4,6 +4,8 @@ import {
   BedDouble,
   CalendarDays,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   Clock3,
   Coffee,
@@ -180,6 +182,35 @@ function BookingModal({ onClose, initialDetails }: { onClose: () => void; initia
   );
 }
 
+function GalleryLightbox({ images, selectedIndex, onClose, onChange }: { images: string[][]; selectedIndex: number; onClose: () => void; onChange: (index: number) => void }) {
+  const [title, image] = images[selectedIndex];
+  const previous = () => onChange((selectedIndex - 1 + images.length) % images.length);
+  const next = () => onChange((selectedIndex + 1) % images.length);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "ArrowLeft") previous();
+      if (event.key === "ArrowRight") next();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedIndex, onClose]);
+
+  return (
+    <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <button className="icon-button gallery-lightbox-close" onClick={onClose} aria-label="Close image viewer"><X size={22} /></button>
+      <button className="gallery-lightbox-nav gallery-lightbox-prev" onClick={previous} aria-label="Previous image"><ChevronLeft size={28} /></button>
+      <figure className="gallery-lightbox-content"><img src={image} alt={title} /><figcaption><span>{String(selectedIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>{title}</figcaption></figure>
+      <button className="gallery-lightbox-nav gallery-lightbox-next" onClick={next} aria-label="Next image"><ChevronRight size={28} /></button>
+    </div>
+  );
+}
+
 function BookingWidget({ onReserve }: { onReserve: (details: BookingDetails) => void }) {
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState("");
@@ -220,6 +251,7 @@ export default function Home() {
   const [experienceFilter, setExperienceFilter] = useState("All");
   const [email, setEmail] = useState("");
   const [bookingDetails, setBookingDetails] = useState<BookingDetails | undefined>();
+  const [selectedGalleryIndex, setSelectedGalleryIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setHeroIndex((current) => (current + 1) % heroImages.length), 6500);
@@ -259,7 +291,7 @@ export default function Home() {
 
         <section id="dining" className="dining-section section-pad"><div className="container"><div className="section-row section-row-light"><SectionHeading light eyebrow="Good food, good company" title="Gather around the table." copy="From a slow afternoon coffee to an evening with a little sparkle, there’s a seat waiting for you." /><div className="filter-tabs" role="tablist">{["All", "Dining", "Lounge"].map((filter) => <button key={filter} role="tab" aria-selected={experienceFilter === filter} className={experienceFilter === filter ? "active" : ""} onClick={() => setExperienceFilter(filter)}>{filter}</button>)}</div></div><div className="experience-grid">{visibleExperiences.map((experience) => { const Icon = experience.icon; return <article className="experience-card" key={experience.title}><div className="experience-image"><img src={experience.image} alt={experience.title} /><span className="experience-icon"><Icon size={19} /></span></div><div className="experience-content"><span className="card-eyebrow">{experience.type} at Royal Garden</span><h3>{experience.title}</h3><p>{experience.text}</p><button className="text-link text-link-light" onClick={() => toast.info(`${experience.title} enquiries`, { description: "Call +91 98240 45633 for today’s menu and timings." })}>Explore the experience <ArrowRight size={16} /></button></div></article> })}</div></div></section>
 
-        <section id="gallery" className="gallery-section section-pad"><div className="container"><div className="section-row"><SectionHeading eyebrow="A glimpse of Royal Garden" title="See the stay before you arrive." copy="Explore the rooms, dining spaces and green corners that make Hotel Royal Garden feel easy to return to." /><span className="gallery-count">13 moments · Hotel Royal Garden</span></div><div className="gallery-grid">{galleryImages.map(([title, image], index) => <a className={`gallery-card gallery-card-${(index % 4) + 1}`} href={image} target="_blank" rel="noreferrer" key={image}><img src={image} alt={title} loading="eager" /><span className="gallery-card-label"><small>0{index + 1}</small>{title}<ArrowUpRightIcon /></span></a>)}</div></div></section>
+        <section id="gallery" className="gallery-section section-pad"><div className="container"><div className="section-row"><SectionHeading eyebrow="A glimpse of Royal Garden" title="See the stay before you arrive." copy="Explore the rooms, dining spaces and green corners that make Hotel Royal Garden feel easy to return to." /><span className="gallery-count">13 moments · Hotel Royal Garden</span></div><div className="gallery-grid">{galleryImages.map(([title, image], index) => <button className={`gallery-card gallery-card-${(index % 4) + 1}`} onClick={() => setSelectedGalleryIndex(index)} aria-label={`View ${title}`} key={image}><img src={image} alt={title} loading="eager" /><span className="gallery-card-label"><small>0{index + 1}</small>{title}<ArrowUpRightIcon /></span></button>)}</div></div></section>
 
         <section className="offer-section"><div className="container offer-inner"><div className="offer-mark"><Sparkles size={28} /></div><div><span className="eyebrow">Make it a little more special</span><h2>Best deals for corporate clients & travellers.</h2><p>Call us directly for a thoughtful offer tailored to your stay.</p></div><a className="button button-accent" href="tel:+919824045633">Call now <Phone size={16} /></a></div></section>
 
@@ -271,6 +303,7 @@ export default function Home() {
       <footer className="site-footer"><div className="container footer-main"><div className="footer-brand"><img src={`${ASSET}hotel-royal-garden-logo-423x152.png`} alt="Hotel Royal Garden" /><p>A refreshing retreat in Daman, where comfort meets the calm of nature.</p><div className="footer-socials"><a href="https://wa.me/919824045633" target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle size={16} /></a><a href="mailto:rylgarden@yahoo.com" aria-label="Email"><Mail size={16} /></a><a href="tel:+919824045633" aria-label="Phone"><Phone size={16} /></a></div></div><div className="footer-links"><div><span className="footer-label">Explore</span><button onClick={() => scrollTo("stay")}>Stay</button><button onClick={() => scrollTo("dining")}>Dining</button><button onClick={() => scrollTo("story")}>Our story</button><button onClick={() => scrollTo("location")}>Location</button><a href={`${import.meta.env.BASE_URL}#gallery`}>Gallery</a></div><div><span className="footer-label">Contact</span><a href="tel:+919824045633">+91 98240 45633</a><a href="tel:+919714746633">+91 97147 46633</a><a href="mailto:rylgarden@yahoo.com">rylgarden@yahoo.com</a></div><div className="newsletter"><span className="footer-label">A little Royal news</span><p>Offers, seasonal menus and reasons to return.</p><form onSubmit={subscribe}><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Your email address" aria-label="Your email address" required /><button aria-label="Subscribe"><ArrowRight size={17} /></button></form></div></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Hotel Royal Garden, Daman</span><span>Made for slower stays.</span></div></footer>
       <a className="whatsapp-float" href="https://wa.me/919824045633?text=Hello%20Hotel%20Royal%20Garden%2C%20I%27d%20like%20to%20know%20more%20about%20a%20stay." target="_blank" rel="noreferrer"><span className="whatsapp-pulse" /> <span>Chat with us</span><span className="whatsapp-symbol"><MessageCircle size={16} /></span></a>
       {isBookingOpen && <BookingModal initialDetails={bookingDetails} onClose={() => setIsBookingOpen(false)} />}
+      {selectedGalleryIndex !== null && <GalleryLightbox images={galleryImages} selectedIndex={selectedGalleryIndex} onClose={() => setSelectedGalleryIndex(null)} onChange={setSelectedGalleryIndex} />}
     </div>
   );
 }
