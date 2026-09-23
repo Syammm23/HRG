@@ -109,6 +109,17 @@ const experiences = [
 
 const today = new Date().toISOString().split("T")[0];
 
+type BookingDetails = {
+  checkIn: string;
+  checkOut: string;
+  guests: string;
+};
+
+function formatBookingDate(value: string) {
+  if (!value) return "Not selected";
+  return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
+}
+
 function SectionHeading({ eyebrow, title, copy, light = false }: { eyebrow: string; title: string; copy?: string; light?: boolean }) {
   return (
     <div className={`section-heading ${light ? "section-heading-light" : ""}`}>
@@ -119,16 +130,27 @@ function SectionHeading({ eyebrow, title, copy, light = false }: { eyebrow: stri
   );
 }
 
-function BookingModal({ onClose }: { onClose: () => void }) {
+function BookingModal({ onClose, initialDetails }: { onClose: () => void; initialDetails?: Partial<BookingDetails> }) {
   const [submitted, setSubmitted] = useState(false);
+  const [checkIn, setCheckIn] = useState(initialDetails?.checkIn || today);
+  const [checkOut, setCheckOut] = useState(initialDetails?.checkOut || "");
+  const [guests, setGuests] = useState(initialDetails?.guests || "2");
+  const [roomType, setRoomType] = useState("any");
+  const [enquiryUrl, setEnquiryUrl] = useState("");
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!checkOut || checkOut <= checkIn) {
+      toast.error("Please choose a check-out date after check-in.");
+      return;
+    }
     setSubmitted(true);
-    toast.success("Your stay request is ready for the Royal Garden team.", {
-      description: "We’ll call you shortly on the number you shared.",
-    });
-    window.setTimeout(onClose, 900);
+    const form = new FormData(event.currentTarget);
+    const name = String(form.get("name") || "");
+    const mobile = String(form.get("mobile") || "");
+    const message = `Hello Hotel Royal Garden, I would like to enquire about a stay.%0A%0ACheck-in: ${formatBookingDate(checkIn)}%0ACheck-out: ${formatBookingDate(checkOut)}%0AGuests: ${guests}%0ARoom: ${roomType === "any" ? "Any available room" : roomType}%0AName: ${name}%0AMobile: ${mobile}`;
+    setEnquiryUrl(`https://wa.me/919824045633?text=${message}`);
+    toast.success("Your enquiry is ready.", { description: "Choose WhatsApp below to send it to the hotel." });
   };
 
   return (
@@ -140,27 +162,29 @@ function BookingModal({ onClose }: { onClose: () => void }) {
         <p className="modal-intro">Share your dates and we’ll help you find the right room and best available deal.</p>
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-grid two-col">
-            <label>Check in<input type="date" min={today} defaultValue={today} required /></label>
-            <label>Check out<input type="date" min={today} required /></label>
+            <label>Check in<input type="date" min={today} value={checkIn} onChange={(event) => setCheckIn(event.target.value)} required /></label>
+            <label>Check out<input type="date" min={checkIn || today} value={checkOut} onChange={(event) => setCheckOut(event.target.value)} required /></label>
           </div>
           <div className="form-grid two-col">
-            <label>Guests<select defaultValue="2"><option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option><option value="4">4 guests</option><option value="5">5+ guests</option></select></label>
-            <label>Room type<select defaultValue="any"><option value="any">Any available room</option><option value="super">Super Deluxe</option><option value="deluxe">Deluxe A/C</option><option value="garden">Garden View</option></select></label>
+            <label>Guests<select name="guests" value={guests} onChange={(event) => setGuests(event.target.value)}><option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option><option value="4">4 guests</option><option value="5">5+ guests</option></select></label>
+            <label>Room type<select name="roomType" value={roomType} onChange={(event) => setRoomType(event.target.value)}><option value="any">Any available room</option><option value="super">Super Deluxe</option><option value="deluxe">Deluxe A/C</option><option value="garden">Garden View</option></select></label>
           </div>
-          <label>Your name<input type="text" placeholder="Enter your name" required /></label>
-          <label>Mobile number<input type="tel" placeholder="+91 98 2404 5633" required /></label>
-          <button className="button button-primary button-wide" type="submit" disabled={submitted}>{submitted ? <><Check size={17} /> Request sent</> : <>Request best available rate <ArrowRight size={17} /></>}</button>
+          <label>Your name<input name="name" type="text" placeholder="Enter your name" required /></label>
+          <label>Mobile number<input name="mobile" type="tel" placeholder="+91 98 2404 5633" required /></label>
+          <button className="button button-primary button-wide" type="submit" disabled={submitted}>{submitted ? <><Check size={17} /> Enquiry ready</> : <>Prepare WhatsApp enquiry <ArrowRight size={17} /></>}</button>
         </form>
+        {submitted && <div className="booking-confirmation" role="status"><strong>Nothing was sent automatically.</strong><span>Your dates are ready. Continue on WhatsApp to contact the hotel, or call directly.</span><a className="button button-accent button-wide" href={enquiryUrl} target="_blank" rel="noreferrer">Continue on WhatsApp <MessageCircle size={17} /></a></div>}
         <p className="modal-footnote"><Phone size={14} /> Prefer to call? <a href="tel:+919824045633">+91 98240 45633</a></p>
       </div>
     </div>
   );
 }
 
-function BookingWidget({ onReserve }: { onReserve: () => void }) {
+function BookingWidget({ onReserve }: { onReserve: (details: BookingDetails) => void }) {
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
+  const [checkedDetails, setCheckedDetails] = useState<BookingDetails | null>(null);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -168,7 +192,13 @@ function BookingWidget({ onReserve }: { onReserve: () => void }) {
       toast.error("Please select a check-out date.");
       return;
     }
-    onReserve();
+    if (checkOut <= checkIn) {
+      toast.error("Check-out must be after check-in.");
+      return;
+    }
+    const details = { checkIn, checkOut, guests };
+    setCheckedDetails(details);
+    onReserve(details);
   };
 
   return (
@@ -177,7 +207,8 @@ function BookingWidget({ onReserve }: { onReserve: () => void }) {
       <label><span><CalendarDays size={16} /> Check in</span><input type="date" value={checkIn} min={today} onChange={(event) => setCheckIn(event.target.value)} /></label>
       <label><span><CalendarDays size={16} /> Check out</span><input type="date" value={checkOut} min={checkIn || today} onChange={(event) => setCheckOut(event.target.value)} /></label>
       <label><span><Users size={16} /> Guests</span><select value={guests} onChange={(event) => setGuests(event.target.value)}><option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option><option value="4">4 guests</option><option value="5">5+ guests</option></select></label>
-      <button className="button button-accent" type="submit">Check availability <ArrowRight size={17} /></button>
+      <button className="button button-accent" type="submit">{checkedDetails ? "Update dates" : "Check availability"} <ArrowRight size={17} /></button>
+      {checkedDetails && <p className="booking-status" role="status"><Check size={15} /><span><strong>Dates selected:</strong> {formatBookingDate(checkedDetails.checkIn)} → {formatBookingDate(checkedDetails.checkOut)} · {checkedDetails.guests} {checkedDetails.guests === "1" ? "guest" : "guests"}. Live room inventory is not connected; continue to request the hotel’s best available rate.</span></p>}
     </form>
   );
 }
@@ -188,6 +219,7 @@ export default function Home() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [experienceFilter, setExperienceFilter] = useState("All");
   const [email, setEmail] = useState("");
+  const [bookingDetails, setBookingDetails] = useState<BookingDetails | undefined>();
 
   useEffect(() => {
     const timer = window.setInterval(() => setHeroIndex((current) => (current + 1) % heroImages.length), 6500);
@@ -210,7 +242,7 @@ export default function Home() {
 
   return (
     <div className="site-shell">
-      <header className="site-header"><div className="container nav-inner"><button className="mobile-menu-button" onClick={() => setIsMenuOpen((open) => !open)} aria-label="Toggle navigation" aria-expanded={isMenuOpen}>{isMenuOpen ? <X size={23} /> : <Menu size={23} />}</button><a href="#top" className="brand-mark" onClick={() => setIsMenuOpen(false)}><img src={`${ASSET}hotel-royal-garden-logo-423x152.png`} alt="Hotel Royal Garden" /></a><nav className={`main-nav ${isMenuOpen ? "nav-open" : ""}`}><button onClick={() => scrollTo("stay")}>Stay</button><button onClick={() => scrollTo("dining")}>Dining</button><button onClick={() => scrollTo("story")}>Our story</button><button onClick={() => scrollTo("location")}>Location</button><a href={`${import.meta.env.BASE_URL}#gallery`} className="nav-gallery-link">Gallery</a><a href="tel:+919824045633" className="nav-call"><Phone size={15} /> Call us</a><button className="button button-dark nav-cta" onClick={() => { setIsBookingOpen(true); setIsMenuOpen(false); }}>Book your stay <ArrowUpRightIcon /></button></nav><button className="button button-dark desktop-cta" onClick={() => setIsBookingOpen(true)}>Book your stay <ArrowUpRightIcon /></button></div></header>
+      <header className="site-header"><div className="container nav-inner"><button className="mobile-menu-button" onClick={() => setIsMenuOpen((open) => !open)} aria-label="Toggle navigation" aria-expanded={isMenuOpen}>{isMenuOpen ? <X size={23} /> : <Menu size={23} />}</button><a href="#top" className="brand-mark" onClick={() => setIsMenuOpen(false)}><img src={`${ASSET}hotel-royal-garden-logo-423x152.png`} alt="Hotel Royal Garden" /></a><nav className={`main-nav ${isMenuOpen ? "nav-open" : ""}`}><button onClick={() => scrollTo("stay")}>Stay</button><button onClick={() => scrollTo("dining")}>Dining</button><button onClick={() => scrollTo("story")}>Our story</button><button onClick={() => scrollTo("location")}>Location</button><a href={`${import.meta.env.BASE_URL}gallery`} className="nav-gallery-link">Gallery</a><a href="tel:+919824045633" className="nav-call"><Phone size={15} /> Call us</a><button className="button button-dark nav-cta" onClick={() => { setBookingDetails(undefined); setIsBookingOpen(true); setIsMenuOpen(false); }}>Book your stay <ArrowUpRightIcon /></button></nav><button className="button button-dark desktop-cta" onClick={() => { setBookingDetails(undefined); setIsBookingOpen(true); }}>Book your stay <ArrowUpRightIcon /></button></div></header>
 
       <main id="top">
         <section className="hero-section">
@@ -219,7 +251,7 @@ export default function Home() {
           <div className="container hero-content"><div className="hero-copy"><div className="hero-kicker"><span className="kicker-dot" /> A garden retreat in Daman</div><h1>Stay close to<br /><em>what feels good.</em></h1><p>Unhurried mornings, leafy corners and the comfort of a place that feels like yours.</p><div className="hero-actions"><button className="button button-accent" onClick={() => setIsBookingOpen(true)}>Find your room <ArrowRight size={17} /></button><button className="text-link text-link-light" onClick={() => scrollTo("story")}>Discover Royal Garden <ArrowDownRight size={18} /></button></div></div><div className="hero-note"><span>01 — 04</span><span className="hero-rule" /><span>Every stay, naturally better</span></div></div>
           <div className="hero-dots" aria-label="Hero image selector">{heroImages.map((_, index) => <button key={index} className={index === heroIndex ? "active" : ""} onClick={() => setHeroIndex(index)} aria-label={`Show hero image ${index + 1}`} />)}</div>
         </section>
-        <BookingWidget onReserve={() => setIsBookingOpen(true)} />
+        <BookingWidget onReserve={(details) => { setBookingDetails(details); setIsBookingOpen(true); }} />
 
         <section id="story" className="story-section section-pad"><div className="container split-layout"><div className="story-media"><img src={`${ASSET}home-welcome.jpg-1110x740.jpg`} alt="Green garden surrounding Hotel Royal Garden" /></div><div className="story-copy"><SectionHeading eyebrow="A slower kind of stay" title="Room to breathe, right at the edge of the city." copy="Escape the rush without going too far. Hotel Royal Garden brings you clean, fresh air and a warm, easygoing stay in the peaceful green stretches of Dhabhel, Daman." /><p className="body-copy">Just a 5-minute drive from Vapi Railway Station, our 58 thoughtfully designed rooms are made for short breaks, family getaways and peaceful business stays. Come to disconnect from the everyday. Stay for the feeling.</p><button className="text-link" onClick={() => scrollTo("stay")}>Explore the stay <ArrowRight size={17} /></button><div className="story-stats"><div><strong>58</strong><span>Thoughtful rooms</span></div><div><strong>5 min</strong><span>From Vapi station</span></div><div><strong>24/7</strong><span>Warm hospitality</span></div></div></div></div></section>
 
@@ -238,7 +270,7 @@ export default function Home() {
 
       <footer className="site-footer"><div className="container footer-main"><div className="footer-brand"><img src={`${ASSET}hotel-royal-garden-logo-423x152.png`} alt="Hotel Royal Garden" /><p>A refreshing retreat in Daman, where comfort meets the calm of nature.</p><div className="footer-socials"><a href="https://wa.me/919824045633" target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle size={16} /></a><a href="mailto:rylgarden@yahoo.com" aria-label="Email"><Mail size={16} /></a><a href="tel:+919824045633" aria-label="Phone"><Phone size={16} /></a></div></div><div className="footer-links"><div><span className="footer-label">Explore</span><button onClick={() => scrollTo("stay")}>Stay</button><button onClick={() => scrollTo("dining")}>Dining</button><button onClick={() => scrollTo("story")}>Our story</button><button onClick={() => scrollTo("location")}>Location</button><a href={`${import.meta.env.BASE_URL}#gallery`}>Gallery</a></div><div><span className="footer-label">Contact</span><a href="tel:+919824045633">+91 98240 45633</a><a href="tel:+919714746633">+91 97147 46633</a><a href="mailto:rylgarden@yahoo.com">rylgarden@yahoo.com</a></div><div className="newsletter"><span className="footer-label">A little Royal news</span><p>Offers, seasonal menus and reasons to return.</p><form onSubmit={subscribe}><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Your email address" aria-label="Your email address" required /><button aria-label="Subscribe"><ArrowRight size={17} /></button></form></div></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Hotel Royal Garden, Daman</span><span>Made for slower stays.</span></div></footer>
       <a className="whatsapp-float" href="https://wa.me/919824045633?text=Hello%20Hotel%20Royal%20Garden%2C%20I%27d%20like%20to%20know%20more%20about%20a%20stay." target="_blank" rel="noreferrer"><span className="whatsapp-pulse" /> <span>Chat with us</span><span className="whatsapp-symbol"><MessageCircle size={16} /></span></a>
-      {isBookingOpen && <BookingModal onClose={() => setIsBookingOpen(false)} />}
+      {isBookingOpen && <BookingModal initialDetails={bookingDetails} onClose={() => setIsBookingOpen(false)} />}
     </div>
   );
 }

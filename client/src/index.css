@@ -120,6 +120,9 @@ img { display: block; max-width: 100%; }
 .booking-widget label span { display: flex; gap: 7px; align-items: center; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: #68816d; }
 .booking-widget input, .booking-widget select { border: 0; padding: 0; background: transparent; color: #273b2e; font-size: 13px; outline: 0; }
 .booking-widget .button { margin: 15px 0 15px 15px; }
+.booking-status { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 8px; margin: 0 0 15px; padding: 11px 13px; color: #315b41; background: #edf4ea; border: 1px solid #d3e2d0; font-size: 11px; line-height: 1.5; }
+.booking-status svg { flex: 0 0 auto; margin-top: 1px; color: #4f8058; }
+.booking-status strong { font-weight: 700; }
 .section-pad { padding: 125px 0; }
 .story-section { background: #f7f6ef; }
 .split-layout { display: grid; grid-template-columns: 1.03fr .97fr; align-items: center; gap: clamp(55px, 8vw, 120px); }
@@ -247,6 +250,10 @@ img { display: block; max-width: 100%; }
 .modal-form input:focus, .modal-form select:focus { border-color: #7b9a81; box-shadow: 0 0 0 3px rgba(76,119,82,.12); }
 .modal-footnote { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 18px 0 0; color: #7d877d; font-size: 11px; }
 .modal-footnote a { color: #315b41; font-weight: 700; }
+.booking-confirmation { display: flex; flex-direction: column; gap: 7px; margin-top: 16px; padding: 15px; color: #315b41; background: #edf4ea; border: 1px solid #d3e2d0; font-size: 12px; line-height: 1.5; }
+.booking-confirmation strong { font-size: 12px; }
+.booking-confirmation span { color: #607064; }
+.booking-confirmation .button { margin-top: 5px; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
@@ -288,6 +295,7 @@ img { display: block; max-width: 100%; }
   .booking-widget label:nth-of-type(2) { border-left: 1px solid #e3e4dc; }
   .booking-widget label:nth-of-type(3) { border-left: 0; border-top: 1px solid #e3e4dc; }
   .booking-widget .button { grid-column: 1 / -1; margin: 13px 0 15px; }
+  .booking-status { margin-top: -3px; }
   .section-pad { padding: 88px 0; }
   .split-layout, .location-layout, .faq-layout { grid-template-columns: 1fr; gap: 55px; }
   .story-media { margin-left: 7px; max-width: calc(100% - 7px); }
